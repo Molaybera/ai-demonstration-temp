@@ -12,6 +12,8 @@
             --bg-card: rgba(30, 41, 59, 0.7);
             --accent: #10b981; /* Emerald Green */
             --accent-glow: rgba(16, 185, 129, 0.4);
+            --guard-color: #f59e0b; /* Amber for Guard */
+            --guard-glow: rgba(245, 158, 11, 0.4);
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --border: rgba(255, 255, 255, 0.08);
@@ -19,124 +21,127 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        html { scroll-behavior: smooth; }
+
         body {
             background: var(--bg-deep);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
             color: var(--text-main);
             font-family: 'Space Grotesk', sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column; /* Stack chat on top of viz for mobile default, row for desktop */
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         /* --- REFRESH BUTTON --- */
         .reset-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 100;
-            background: rgba(30, 41, 59, 0.8);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.8);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
             cursor: pointer;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .reset-btn:hover {
             background: var(--accent);
             color: #0f172a;
             border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
-        /* --- DESKTOP LAYOUT --- */
-        @media (min-width: 769px) {
-            body { flex-direction: row; }
-            .sidebar { width: 350px; border-right: 1px solid var(--border); border-bottom: none; }
-            .main-stage { flex: 1; }
-        }
-
-        /* --- SIDEBAR (Chat) --- */
-        .sidebar {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
+        /* --- SECTION 1: INPUT (Hero) --- */
+        .section-input {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 24px;
-            z-index: 20;
-            border-bottom: 1px solid var(--border);
-            height: 35vh; /* Reduced height on mobile to give room to viz */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
         }
-        @media (min-width: 769px) { .sidebar { height: 100vh; } }
+
+        .hero-content {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
         .logo {
-            font-size: 1.25rem;
+            font-size: 2rem;
             font-weight: 700;
             letter-spacing: -0.02em;
-            margin-bottom: 20px;
+            text-align: center;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 15px;
         }
-        .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); }
+        .logo-dot { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); }
 
-        .chat-log {
-            flex: 1;
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
+        .chat-container {
+            height: 50vh;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 20px;
             border: 1px solid var(--border);
-            margin-bottom: 20px;
-            padding: 15px;
+            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .message {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            padding: 10px 14px;
-            border-radius: 10px;
-            max-width: 90%;
+            font-size: 1rem;
+            line-height: 1.5;
+            padding: 12px 18px;
+            border-radius: 14px;
+            max-width: 85%;
             animation: fadeIn 0.3s ease;
         }
         .msg-ai { background: rgba(16, 185, 129, 0.1); color: var(--accent); align-self: flex-start; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .msg-user { background: #334155; color: white; align-self: flex-end; }
+        .msg-user { background: #334155; color: white; align-self: flex-end; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
-        .input-group { position: relative; }
+        .input-group { position: relative; width: 100%; }
         .input-box {
             width: 100%;
             background: #1e293b;
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 15px;
-            padding-right: 50px;
+            border-radius: 16px;
+            padding: 20px;
+            padding-right: 60px;
             color: white;
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 1rem;
+            font-size: 1.1rem;
             outline: none;
             transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
-        .input-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+        .input-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); transform: translateY(-2px); }
         
         .send-btn {
             position: absolute;
-            right: 10px;
+            right: 12px;
             top: 50%;
             transform: translateY(-50%);
             background: var(--accent);
             border: none;
-            width: 32px; height: 32px;
-            border-radius: 8px;
+            width: 44px; height: 44px;
+            border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -147,30 +152,27 @@
         .send-btn:hover { transform: translateY(-50%) scale(1.1); }
         .send-btn:disabled { background: #64748b; cursor: not-allowed; }
 
-        /* --- MAIN STAGE (Visualizer) --- */
-        .main-stage {
-            position: relative;
+        /* --- SECTION 2: VISUALIZER --- */
+        .section-viz {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            height: 65vh; /* Increased mobile height */
+            padding: 20px 0;
+            background: rgba(15, 23, 42, 0.5);
+            border-top: 1px solid var(--border);
         }
-        @media (min-width: 769px) { .main-stage { height: 100vh; } }
 
-        /* Diagram Container - Horizontal Scroll */
+        .viz-header { text-align: center; margin: 20px 0; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; font-weight: 700; }
+
         .diagram-scroll-area {
-            flex: 1;
+            width: 100%;
             display: flex;
             align-items: center;
-            overflow-x: auto; /* Horizontal Scroll */
+            overflow-x: auto;
             overflow-y: hidden;
             scroll-behavior: smooth;
-            padding: 0 40px; /* Padding for desktop */
-            
-            /* Mobile Snap */
+            padding: 40px 0;
             scroll-snap-type: x mandatory;
-            
-            /* Hide Scrollbar */
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
@@ -179,10 +181,10 @@
         .diagram-track {
             display: flex;
             align-items: center;
-            gap: 40px; /* Gap between blocks */
+            gap: 40px;
             position: relative;
-            min-width: max-content; /* Ensure it grows horizontally */
-            padding: 50px 0; /* Vertical breathing room */
+            min-width: max-content;
+            padding: 0 50vw;
         }
 
         /* Blocks */
@@ -191,7 +193,7 @@
             height: 180px;
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -200,31 +202,46 @@
             backdrop-filter: blur(12px);
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             z-index: 5;
-            
-            /* Snap alignment */
             scroll-snap-align: center;
         }
 
         .node.active {
             border-color: var(--accent);
-            background: rgba(16, 185, 129, 0.1);
-            box-shadow: 0 0 30px var(--accent-glow);
-            transform: scale(1.05);
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: 
+                0 0 20px var(--accent),
+                0 0 60px var(--accent-glow),
+                inset 0 0 20px rgba(16, 185, 129, 0.2);
+            transform: scale(1.1);
+            z-index: 10;
         }
+        
+        /* Special style for Guard block */
+        .node.guard-active {
+            border-color: var(--guard-color);
+            background: rgba(245, 158, 11, 0.15);
+            box-shadow: 
+                0 0 20px var(--guard-color),
+                0 0 60px var(--guard-glow),
+                inset 0 0 20px rgba(245, 158, 11, 0.2);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .node.guard-active .node-title { text-shadow: 0 0 10px var(--guard-color); }
+        .node.guard-active .node-desc { opacity: 1; transform: translateY(0); color: #e2e8f0; }
 
-        .node-icon { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.8; }
+        .node-icon { font-size: 3rem; margin-bottom: 15px; opacity: 0.8; }
         .node-title { 
-            font-size: 0.85rem; 
+            font-size: 0.9rem; 
             font-weight: 700; 
             text-transform: uppercase; 
             letter-spacing: 1px;
             color: var(--text-muted);
         }
-        .node.active .node-title { color: white; }
+        .node.active .node-title { color: white; text-shadow: 0 0 10px var(--accent); }
 
-        /* Description text inside block */
         .node-desc {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             text-align: center;
             margin-top: 8px;
             padding: 0 10px;
@@ -233,24 +250,18 @@
             transform: translateY(5px);
             transition: all 0.3s;
         }
-        .node.active .node-desc { opacity: 1; transform: translateY(0); }
+        .node.active .node-desc { opacity: 1; transform: translateY(0); color: #e2e8f0; }
 
-        /* Arrows */
-        .connector {
-            color: #475569;
-            font-size: 1.5rem;
-            animation: bounceRight 2s infinite;
-        }
+        .connector { color: #475569; font-size: 1.5rem; animation: bounceRight 2s infinite; }
 
-        /* The Ball (Data Packet) */
         .data-orb {
             position: absolute;
             top: 0; left: 0;
-            width: 20px; height: 20px;
+            width: 24px; height: 24px;
             background: white;
             border-radius: 50%;
             z-index: 50;
-            box-shadow: 0 0 20px var(--accent);
+            box-shadow: 0 0 20px var(--accent), 0 0 40px white;
             display: none;
             pointer-events: none;
             transition: left 0.8s ease-in-out, top 0.8s ease-in-out;
@@ -262,103 +273,124 @@
             animation: pulse 1s infinite;
         }
 
-        /* --- TERMINAL (Bottom) --- */
-        .terminal-overlay {
-            height: 140px;
+        /* --- TERMINAL (Bottom Panel) --- */
+        .terminal-container {
+            /* Removed flex: 1 and min-height to allow fixed height scrolling */
+            height: 400px; /* Fixed height for desktop */
             background: #0b101b;
             border-top: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             font-family: 'JetBrains Mono', monospace;
-            z-index: 30;
-            transition: height 0.3s ease;
+            width: 100%;
+            max-width: 1000px;
+            margin: 20px auto 0 auto;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
         }
 
         .term-bar {
-            padding: 8px 16px;
+            padding: 12px 20px;
             background: rgba(255,255,255,0.03);
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: #64748b;
             text-transform: uppercase;
+            font-weight: 700;
         }
 
         .term-content {
-            padding: 16px;
+            padding: 20px;
             flex: 1;
             overflow-y: auto;
             color: #e2e8f0;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            line-height: 1.6;
         }
         
-        .log-entry { margin-bottom: 6px; display: flex; opacity: 0; animation: slideUp 0.3s forwards; }
-        .log-time { color: #475569; margin-right: 12px; }
-        .log-txt { flex: 1; }
-        .log-txt.active { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+        .log-entry { margin-bottom: 10px; display: flex; opacity: 0; animation: slideUp 0.3s forwards; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 5px; }
+        .log-time { color: #475569; margin-right: 15px; font-variant-numeric: tabular-nums; font-size: 0.8rem; padding-top: 2px;}
+        
+        /* New Tag Style */
+        .log-tag {
+            color: var(--accent);
+            font-weight: 700;
+            margin-right: 12px;
+            min-width: 85px; /* Fixed width for alignment */
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .log-tag.guard { color: var(--guard-color); }
+
+        .log-txt { flex: 1; word-break: break-word; }
+        .log-txt.active { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
         /* --- ANIMATIONS --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
         @keyframes bounceRight { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
 
         /* --- MOBILE TWEAKS --- */
         @media (max-width: 768px) {
-            .diagram-scroll-area {
-                padding: 0 50vw 0 50vw; /* Huge padding to allow centering first/last items */
-            }
-            .diagram-track {
-                padding: 0;
-                gap: 80px; /* More space between blocks on mobile for focus */
-            }
-            .node {
-                /* On mobile, center the active block */
-                scroll-snap-align: center;
-                min-width: 200px; /* Wider cards on mobile */
-                height: 220px;
-            }
-            .sidebar { padding: 15px; }
-            .logo { margin-bottom: 10px; font-size: 1rem; }
+            .section-input { padding: 15px; }
+            .logo { font-size: 1.5rem; }
+            .chat-container { height: 60vh; }
             
-            /* Increased Terminal Height for Visibility */
-            .terminal-overlay { height: 250px; }
+            .node { width: 220px; height: 240px; }
+            .diagram-track { gap: 60px; }
+            
+            /* Constrained height on mobile for internal scrolling */
+            .terminal-container { 
+                border-radius: 0; 
+                width: 100%; 
+                margin: 0; 
+                height: 50vh; /* Fixed height relative to viewport */
+                min-height: unset; 
+            }
         }
 
     </style>
 </head>
 <body>
 
-    <!-- Refresh Button -->
+    <!-- Fixed Refresh Button -->
     <button class="reset-btn" onclick="location.reload()">
         ↺ New Session
     </button>
 
-    <!-- LEFT: CHAT -->
-    <div class="sidebar">
-        <div class="logo">
-            <div class="logo-dot"></div>
-            <span>AI CORE VISUALIZER</span>
-        </div>
-        
-        <div class="chat-log" id="chatLog">
-            <div class="message msg-ai">System Online. Enter a prompt to visualize the neural pathway.</div>
-        </div>
+    <!-- SECTION 1: INPUT HERO -->
+    <div class="section-input" id="inputSection">
+        <div class="hero-content">
+            <div class="logo">
+                <div class="logo-dot"></div>
+                <span>AI CORE VISUALIZER</span>
+            </div>
 
-        <div class="input-group">
-            <input type="text" class="input-box" id="userInput" placeholder="Ask something..." autocomplete="off">
-            <button class="send-btn" id="sendBtn" onclick="runSimulation()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
-                </svg>
-            </button>
+            <div class="chat-container" id="chatLog">
+                <div class="message msg-ai">System Online. Enter a prompt below to start the visualization sequence.</div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" class="input-box" id="userInput" placeholder="Type a prompt (e.g. 'Write code')..." autocomplete="off">
+                <button class="send-btn" id="sendBtn" onclick="runSimulation()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- RIGHT: VISUALIZER -->
-    <div class="main-stage">
+    <!-- SECTION 2: VISUALIZER (Initially below fold) -->
+    <div class="section-viz" id="vizSection">
         
+        <div class="viz-header">Neural Pathway Visualization</div>
+
         <!-- Scrolling Diagram -->
         <div class="diagram-scroll-area" id="scrollContainer">
             <div class="diagram-track" id="track">
@@ -375,8 +407,17 @@
 
                 <div class="connector">→</div>
 
-                <!-- 2. Tokenizer -->
+                <!-- 2. Guard (NEW BLOCK) -->
                 <div class="node" id="node-1">
+                    <div class="node-icon">🛡️</div>
+                    <div class="node-title">Guard</div>
+                    <div class="node-desc">Safety Check</div>
+                </div>
+
+                <div class="connector">→</div>
+
+                <!-- 3. Tokenizer -->
+                <div class="node" id="node-2">
                     <div class="node-icon">🔢</div>
                     <div class="node-title">Tokenize</div>
                     <div class="node-desc">Text to ID</div>
@@ -384,17 +425,17 @@
 
                 <div class="connector">→</div>
 
-                <!-- 3. Memory -->
-                <div class="node" id="node-2">
+                <!-- 4. Memory -->
+                <div class="node" id="node-3">
                     <div class="node-icon">💾</div>
                     <div class="node-title">Context</div>
-                    <div class="node-desc">Retreiving History</div>
+                    <div class="node-desc">History</div>
                 </div>
 
                 <div class="connector">→</div>
 
-                <!-- 4. Model -->
-                <div class="node" id="node-3">
+                <!-- 5. Model -->
+                <div class="node" id="node-4">
                     <div class="node-icon">🧠</div>
                     <div class="node-title">Model</div>
                     <div class="node-desc">Neural Processing</div>
@@ -402,8 +443,8 @@
 
                 <div class="connector">→</div>
 
-                <!-- 5. Output -->
-                <div class="node" id="node-4">
+                <!-- 6. Output -->
+                <div class="node" id="node-5">
                     <div class="node-icon">💬</div>
                     <div class="node-title">Output</div>
                     <div class="node-desc">Generating Text</div>
@@ -412,16 +453,17 @@
             </div>
         </div>
 
-        <!-- Terminal -->
-        <div class="terminal-overlay">
+        <!-- Big Terminal -->
+        <div class="terminal-container">
             <div class="term-bar">
-                <span>Process Log</span>
+                <span>System Log</span>
                 <span id="statusBadge" style="color: var(--accent);">IDLE</span>
             </div>
             <div class="term-content" id="terminal">
                 <div class="log-entry">
-                    <span class="log-time">00:00</span>
-                    <span class="log-txt">Waiting for input stream...</span>
+                    <span class="log-time">00:00:00</span>
+                    <span class="log-tag" style="color:#64748b;">[SYSTEM]</span>
+                    <span class="log-txt">Waiting for initialization...</span>
                 </div>
             </div>
         </div>
@@ -431,15 +473,28 @@
     <script>
         let isProcessing = false;
 
-        function log(msg, isActive = false) {
+        document.getElementById("userInput").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                runSimulation();
+            }
+        });
+
+        // Updated Log function with Source support
+        function log(msg, source = "SYSTEM", isActive = false) {
             const term = document.getElementById('terminal');
             const now = new Date();
-            const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
             
             const div = document.createElement('div');
             div.className = 'log-entry';
+            
+            // Custom color for GUARD tag
+            let tagClass = "log-tag";
+            if (source === "GUARD") tagClass += " guard";
+
             div.innerHTML = `
                 <span class="log-time">${timeStr}</span>
+                <span class="log-tag ${tagClass}">[${source}]</span>
                 <span class="log-txt ${isActive ? 'active' : ''}">${msg}</span>
             `;
             term.appendChild(div);
@@ -457,57 +512,74 @@
             document.getElementById('sendBtn').disabled = true;
             document.getElementById('statusBadge').innerText = "RUNNING";
 
-            // Add Chat Msg
+            // 1. Update Chat
             const chat = document.getElementById('chatLog');
             chat.innerHTML += `<div class="message msg-user">${text}</div>`;
             chat.scrollTop = chat.scrollHeight;
 
+            // 2. SCROLL TO VIZ SECTION
+            document.getElementById('vizSection').scrollIntoView({ behavior: 'smooth' });
+            
             // Clear logs
             document.getElementById('terminal').innerHTML = '';
+            
+            await wait(800);
 
             // --- STEP 1: INPUT ---
             await activateNode(0);
-            log(`Input received: "${text}"`, true);
-            await wait(1200);
+            log(`Packet received: "${text}"`, "INPUT", true);
+            await wait(1000);
 
-            // --- STEP 2: TOKENIZE ---
+            // --- STEP 2: GUARD (New) ---
             await activateNode(1);
-            log("Breaking text into tokens...");
-            await wait(1500);
+            log("Scanning content for policy violations...", "GUARD");
+            await wait(1000);
+            log("Safety check passed. Content is clean.", "GUARD", true);
+            await wait(800);
 
-            // --- STEP 3: CONTEXT ---
+            // --- STEP 3: TOKENIZE ---
             await activateNode(2);
-            log("Loading conversation history...");
-            await wait(1500);
+            log("Converting string to integer IDs...", "TOKEN");
+            await wait(800);
+            log(`Vectors generated: [34, 902, 11, ...]`, "TOKEN", true);
+            await wait(1000);
 
-            // --- STEP 4: MODEL ---
+            // --- STEP 4: CONTEXT ---
             await activateNode(3);
-            log("Processing neural layers...");
+            log("Retrieving session history...", "MEMORY");
+            await wait(800);
+            log("Context window updated (2048 tokens).", "MEMORY");
+            await wait(1000);
+
+            // --- STEP 5: MODEL ---
+            await activateNode(4);
+            log("Loading Phi model weights...", "MODEL");
             // Extra thinking time
             for(let i=0; i<3; i++) {
-                await wait(500);
-                log("Calculating probability...");
+                await wait(600);
+                log(`Layer ${i+1}/24: Computing attention self-heads...`, "MODEL");
             }
             await wait(500);
+            log("Inference complete.", "MODEL", true);
+            await wait(500);
 
-            // --- STEP 5: OUTPUT ---
-            await activateNode(4);
-            log("Decoding answer...");
+            // --- STEP 6: OUTPUT ---
+            await activateNode(5);
+            log("Detokenizing output...", "OUTPUT");
             await wait(1000);
 
             // Finish
             const response = mockResponse(text);
+            log(`Final response generated.`, "OUTPUT", true);
             chat.innerHTML += `<div class="message msg-ai">${response}</div>`;
-            chat.scrollTop = chat.scrollHeight;
             
             finish();
         }
 
         function mockResponse(text) {
             const t = text.toLowerCase();
-            if (t.includes('hello')) return "Hello! Ready to analyze.";
-            if (t.includes('code')) return "Here is a Python snippet: print('Secure')";
-            return "Analysis complete. Logic path visualized.";
+            if (t.includes('hello')) return "Hello! ouput can be visible on web app 'Master', I am just an visiual demonstrater of Master AI.";
+            return "The ouput can be visible on web app 'Master', I am just an visiual demonstrater of Master AI";
         }
 
         async function finish() {
@@ -517,11 +589,12 @@
             setTimeout(() => orb.style.display = 'none', 500);
 
             // Reset Nodes
-            for(let i=0; i<5; i++) {
+            for(let i=0; i<6; i++) {
                 document.getElementById(`node-${i}`).classList.remove('active');
+                document.getElementById(`node-${i}`).classList.remove('guard-active');
             }
 
-            log("Process Complete.", true);
+            log("Sequence finished. Ready for new input.", "SYSTEM", true);
             document.getElementById('sendBtn').disabled = false;
             document.getElementById('userInput').value = '';
             document.getElementById('statusBadge').innerText = "IDLE";
@@ -533,18 +606,18 @@
                 const node = document.getElementById(`node-${index}`);
                 const container = document.getElementById('scrollContainer');
                 const orb = document.getElementById('orb');
-                const track = document.getElementById('track');
-
+                
                 // 1. Deactivate previous
-                if (index > 0) document.getElementById(`node-${index-1}`).classList.remove('active');
+                if (index > 0) {
+                    const prev = document.getElementById(`node-${index-1}`);
+                    prev.classList.remove('active');
+                    prev.classList.remove('guard-active');
+                }
 
-                // 2. Auto-Scroll Logic (Crucial for Mobile)
-                // Center the target node in the scroll view
+                // 2. Auto-Scroll Logic
                 const nodeLeft = node.offsetLeft;
                 const nodeWidth = node.offsetWidth;
                 const containerWidth = container.clientWidth;
-                
-                // Calculate scroll position to center element
                 const scrollPos = nodeLeft - (containerWidth / 2) + (nodeWidth / 2);
                 
                 container.scrollTo({
@@ -552,28 +625,28 @@
                     behavior: 'smooth'
                 });
 
-                // 3. Move Orb (Must account for track position relative to scroll parent)
-                // Note: Orb is absolute inside 'track', which moves with scroll. 
-                // We just need its offset relative to the track start.
-                const targetLeft = node.offsetLeft + (node.offsetWidth / 2) - 10; // -10 is half orb size
-                const targetTop = node.offsetTop + (node.offsetHeight / 2) - 10;
+                // 3. Move Orb
+                const targetLeft = node.offsetLeft + (node.offsetWidth / 2) - 12;
+                const targetTop = node.offsetTop + (node.offsetHeight / 2) - 12;
 
                 if (orb.style.display === 'none' || orb.style.display === '') {
-                    // Initial Appear
                     orb.style.display = 'block';
                     orb.style.opacity = '1';
                     orb.style.left = targetLeft + 'px';
                     orb.style.top = targetTop + 'px';
-                    node.classList.add('active');
+                    
+                    // Specific active class for Guard to change color
+                    if (index === 1) node.classList.add('guard-active');
+                    else node.classList.add('active');
+                    
                     resolve();
                 } else {
-                    // Glide
                     orb.style.left = targetLeft + 'px';
                     orb.style.top = targetTop + 'px';
                     
-                    // Wait for glide
                     setTimeout(() => {
-                        node.classList.add('active');
+                        if (index === 1) node.classList.add('guard-active');
+                        else node.classList.add('active');
                         resolve();
                     }, 800);
                 }
