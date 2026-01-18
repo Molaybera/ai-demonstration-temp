@@ -3,336 +3,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Model Visualizer - Student Edition</title>
+    <title>AI Logic Core</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
         :root {
-            --primary: #00ff9d;
-            --secondary: #00b8ff;
-            --accent: #f59e0b;
-            --danger: #ff4757;
-            --bg: #0b1120;
-            --panel: #1e293b;
-            --border: #334155;
-            --text: #e2e8f0;
-            --terminal-bg: #0f172a;
+            --bg-deep: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --accent: #10b981; /* Emerald Green */
+            --accent-glow: rgba(16, 185, 129, 0.4);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
+            background: var(--bg-deep);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
             height: 100vh;
+            display: flex;
+            flex-direction: column; /* Stack chat on top of viz for mobile default, row for desktop */
             overflow: hidden;
         }
 
-        /* --- LEFT PANEL: Chat Interface --- */
-        .chat-panel {
-            width: 30%;
-            border-right: 1px solid var(--border);
+        /* --- DESKTOP LAYOUT --- */
+        @media (min-width: 769px) {
+            body { flex-direction: row; }
+            .sidebar { width: 350px; border-right: 1px solid var(--border); border-bottom: none; }
+            .main-stage { flex: 1; }
+        }
+
+        /* --- SIDEBAR (Chat) --- */
+        .sidebar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.95);
-            z-index: 10;
-        }
-
-        .header {
-            margin-bottom: 20px;
+            padding: 24px;
+            z-index: 20;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
+            height: 40vh; /* Mobile Height */
         }
+        @media (min-width: 769px) { .sidebar { height: 100vh; } }
 
-        .header h1 { font-size: 1.5rem; color: var(--primary); font-weight: 700; margin-bottom: 5px; }
-        .header p { font-size: 0.9rem; color: #94a3b8; }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); }
 
-        .chat-window {
-            flex-grow: 1;
-            background: #000;
-            border: 1px solid var(--border);
+        .chat-log {
+            flex: 1;
+            background: rgba(0,0,0,0.2);
             border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
             padding: 15px;
             overflow-y: auto;
-            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .msg { padding: 12px 16px; border-radius: 12px; max-width: 90%; font-size: 0.95rem; line-height: 1.5; }
-        .msg.user { background: #334155; color: white; border-bottom-right-radius: 2px; align-self: flex-end; }
-        .msg.ai { background: #064e3b; color: var(--primary); border: 1px solid var(--primary); border-bottom-left-radius: 2px; align-self: flex-start; }
+        .message {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            padding: 10px 14px;
+            border-radius: 10px;
+            max-width: 90%;
+            animation: fadeIn 0.3s ease;
+        }
+        .msg-ai { background: rgba(16, 185, 129, 0.1); color: var(--accent); align-self: flex-start; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .msg-user { background: #334155; color: white; align-self: flex-end; }
 
-        .input-area { display: flex; gap: 10px; flex-direction: column; }
-        
-        textarea {
+        .input-group { position: relative; }
+        .input-box {
             width: 100%;
             background: #1e293b;
             border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            padding-right: 50px;
             color: white;
-            padding: 15px;
-            border-radius: 8px;
-            outline: none;
-            resize: none;
-            height: 80px;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 1rem;
-        }
-        textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.2); }
-
-        button {
-            width: 100%;
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
+            outline: none;
             transition: all 0.2s;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
         }
-        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 157, 0.4); }
-        button:disabled { background: #475569; cursor: not-allowed; opacity: 0.7; }
-
-        /* --- RIGHT PANEL: Visualizer --- */
-        .viz-panel {
-            width: 70%;
-            position: relative;
-            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0b1120 100%);
-            display: flex;
-            flex-direction: column;
-            padding: 30px;
-        }
-
-        /* Diagram Area */
-        .diagram-container {
-            flex: 1.5; /* Reduced from 2 to give terminal more space */
-            position: relative;
+        .input-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+        
+        .send-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent);
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px; /* Space for arrows */
+            color: #0f172a;
+            transition: transform 0.2s;
+        }
+        .send-btn:hover { transform: translateY(-50%) scale(1.1); }
+        .send-btn:disabled { background: #64748b; cursor: not-allowed; }
+
+        /* --- MAIN STAGE (Visualizer) --- */
+        .main-stage {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 60vh; /* Mobile height */
+        }
+        @media (min-width: 769px) { .main-stage { height: 100vh; } }
+
+        /* Diagram Container - Horizontal Scroll */
+        .diagram-scroll-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow-x: auto; /* Horizontal Scroll */
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            padding: 0 40px; /* Padding for desktop */
+            
+            /* Mobile Snap */
+            scroll-snap-type: x mandatory;
+            
+            /* Hide Scrollbar */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .diagram-scroll-area::-webkit-scrollbar { display: none; }
+
+        .diagram-track {
+            display: flex;
+            align-items: center;
+            gap: 40px; /* Gap between blocks */
+            position: relative;
+            min-width: max-content; /* Ensure it grows horizontally */
+            padding: 50px 0; /* Vertical breathing room */
         }
 
         /* Blocks */
-        .block {
-            position: relative;
-            z-index: 2;
-            width: 130px;
-            height: 130px;
-            background: var(--panel);
-            border: 2px solid var(--border);
+        .node {
+            width: 160px;
+            height: 180px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             border-radius: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 5;
+            
+            /* Snap alignment */
+            scroll-snap-align: center;
         }
 
-        .block.active {
-            border-color: var(--primary);
-            background: rgba(6, 78, 59, 0.8);
-            transform: scale(1.15);
-            box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
+        .node.active {
+            border-color: var(--accent);
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 30px var(--accent-glow);
+            transform: scale(1.05);
         }
 
-        .block-icon { font-size: 2.5rem; margin-bottom: 10px; }
-        .block-label { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-        .block.active .block-label { color: #fff; }
+        .node-icon { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.8; }
+        .node-title { 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+        .node.active .node-title { color: white; }
 
-        /* Arrows between blocks */
-        .arrow {
+        /* Description text inside block */
+        .node-desc {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 8px;
+            padding: 0 10px;
+            color: #64748b;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: all 0.3s;
+        }
+        .node.active .node-desc { opacity: 1; transform: translateY(0); }
+
+        /* Arrows */
+        .connector {
             color: #475569;
-            font-size: 2rem;
-            font-weight: bold;
-            z-index: 1;
+            font-size: 1.5rem;
+            animation: bounceRight 2s infinite;
         }
 
-        /* Moving Data Packet (The Ball) */
-        .data-packet {
+        /* The Ball (Data Packet) */
+        .data-orb {
             position: absolute;
-            width: 24px;
-            height: 24px;
-            background: #fff;
+            top: 0; left: 0;
+            width: 20px; height: 20px;
+            background: white;
             border-radius: 50%;
-            z-index: 10;
-            box-shadow: 0 0 15px #fff, 0 0 30px var(--primary);
+            z-index: 50;
+            box-shadow: 0 0 20px var(--accent);
             display: none;
+            pointer-events: none;
             transition: left 0.8s ease-in-out, top 0.8s ease-in-out;
-            pointer-events: none; /* Let clicks pass through */
         }
-        
-        .data-packet::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100%; height: 100%;
+        .data-orb::after {
+            content: ''; position: absolute; inset: -50%;
             border-radius: 50%;
-            background: var(--primary);
-            opacity: 0.5;
-            transform: translate(-50%, -50%) scale(1.5);
+            background: radial-gradient(circle, var(--accent-glow), transparent 70%);
             animation: pulse 1s infinite;
         }
 
-        @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }
-
-        /* Terminal Area */
-        .terminal-container {
-            flex: 3; /* Increased from flex: 1 (relative to diagram's flex:2) to balance space */
-            background: var(--terminal-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border);
+        /* --- TERMINAL (Bottom) --- */
+        .terminal-overlay {
+            height: 140px;
+            background: #0b101b;
+            border-top: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin-top: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 30;
         }
 
-        .terminal-header {
-            background: #1e293b;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            color: #94a3b8;
+        .term-bar {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.03);
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
         }
 
-        .terminal-body {
+        .term-content {
+            padding: 16px;
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 1.1rem; /* Increased font size for readability */
-            line-height: 1.6;
             color: #e2e8f0;
-        }
-
-        /* Simple Log Styling */
-        .log-entry { margin-bottom: 12px; display: flex; align-items: flex-start; animation: slideIn 0.3s ease-out; }
-        .log-bullet { margin-right: 12px; color: var(--primary); font-weight: bold; }
-        .log-text { color: #cbd5e1; }
-        .log-text.highlight { color: #fff; font-weight: bold; color: var(--primary); }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-
-        /* Reset Button */
-        .new-session-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
+            font-size: 0.9rem;
         }
         
-        .session-btn {
-            background: rgba(30, 41, 59, 0.8);
-            color: white;
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            backdrop-filter: blur(5px);
+        .log-entry { margin-bottom: 6px; display: flex; opacity: 0; animation: slideUp 0.3s forwards; }
+        .log-time { color: #475569; margin-right: 12px; }
+        .log-txt { flex: 1; }
+        .log-txt.active { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes bounceRight { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 768px) {
+            .diagram-scroll-area {
+                padding: 0 50vw 0 50vw; /* Huge padding to allow centering first/last items */
+            }
+            .diagram-track {
+                padding: 0;
+                gap: 80px; /* More space between blocks on mobile for focus */
+            }
+            .node {
+                /* On mobile, center the active block */
+                scroll-snap-align: center;
+                min-width: 200px; /* Wider cards on mobile */
+                height: 220px;
+            }
+            .sidebar { padding: 15px; }
+            .logo { margin-bottom: 10px; font-size: 1rem; }
+            .terminal-overlay { height: 120px; }
         }
-        
-        .session-btn:hover { background: var(--primary); color: black; border-color: var(--primary); }
 
     </style>
 </head>
 <body>
 
-    <!-- Top Right Reset Button -->
-    <div class="new-session-badge">
-        <button class="session-btn" onclick="location.reload()">
-            <span>↻</span> New Student Session
-        </button>
-    </div>
-
-    <!-- LEFT: Chat Interface -->
-    <div class="chat-panel">
-        <div class="header">
-            <h1>AI Learning Lab</h1>
-            <p>See how an AI thinks step-by-step.</p>
+    <!-- LEFT: CHAT -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-dot"></div>
+            <span>AI CORE VISUALIZER</span>
         </div>
-        <div class="chat-window" id="chatWindow">
-            <div class="msg ai">Hi! I'm your AI model. Type something below and watch how I process your message!</div>
-        </div>
-        <div class="input-area">
-            <textarea id="userInput" placeholder="Type a question here... (e.g. 'What is coding?')" spellcheck="false"></textarea>
-            <button id="sendBtn" onclick="startWorkflow()">Run AI Model</button>
-        </div>
-    </div>
-
-    <!-- RIGHT: Visualization Panel -->
-    <div class="viz-panel">
         
-        <!-- Animated Diagram Area -->
-        <div class="diagram-container" id="diagramArea">
-            
-            <!-- The Moving Packet -->
-            <div class="data-packet" id="packet"></div>
+        <div class="chat-log" id="chatLog">
+            <div class="message msg-ai">System Online. Enter a prompt to visualize the neural pathway.</div>
+        </div>
 
-            <!-- Block 1: Input -->
-            <div class="block" id="blk-input">
-                <div class="block-icon">⌨️</div>
-                <div class="block-label">Input</div>
-            </div>
+        <div class="input-group">
+            <input type="text" class="input-box" id="userInput" placeholder="Ask something..." autocomplete="off">
+            <button class="send-btn" id="sendBtn" onclick="runSimulation()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
 
-            <div class="arrow">→</div>
+    <!-- RIGHT: VISUALIZER -->
+    <div class="main-stage">
+        
+        <!-- Scrolling Diagram -->
+        <div class="diagram-scroll-area" id="scrollContainer">
+            <div class="diagram-track" id="track">
+                
+                <!-- The Moving Ball -->
+                <div class="data-orb" id="orb"></div>
 
-            <!-- Block 2: Tokenizer -->
-            <div class="block" id="blk-token">
-                <div class="block-icon">🔢</div>
-                <div class="block-label">Tokenizer</div>
-            </div>
+                <!-- 1. Input -->
+                <div class="node" id="node-0">
+                    <div class="node-icon">⌨️</div>
+                    <div class="node-title">Input</div>
+                    <div class="node-desc">Receiving text</div>
+                </div>
 
-            <div class="arrow">→</div>
+                <div class="connector">→</div>
 
-            <!-- Block 3: Memory -->
-            <div class="block" id="blk-memory">
-                <div class="block-icon">💾</div>
-                <div class="block-label">Memory</div>
-            </div>
+                <!-- 2. Tokenizer -->
+                <div class="node" id="node-1">
+                    <div class="node-icon">🔢</div>
+                    <div class="node-title">Tokenize</div>
+                    <div class="node-desc">Text to ID</div>
+                </div>
 
-            <div class="arrow">→</div>
+                <div class="connector">→</div>
 
-            <!-- Block 4: Model -->
-            <div class="block" id="blk-model">
-                <div class="block-icon">🧠</div>
-                <div class="block-label">Thinking</div>
-            </div>
+                <!-- 3. Memory -->
+                <div class="node" id="node-2">
+                    <div class="node-icon">💾</div>
+                    <div class="node-title">Context</div>
+                    <div class="node-desc">Retreiving History</div>
+                </div>
 
-            <div class="arrow">→</div>
+                <div class="connector">→</div>
 
-            <!-- Block 5: Output -->
-            <div class="block" id="blk-output">
-                <div class="block-icon">💬</div>
-                <div class="block-label">Output</div>
+                <!-- 4. Model -->
+                <div class="node" id="node-3">
+                    <div class="node-icon">🧠</div>
+                    <div class="node-title">Model</div>
+                    <div class="node-desc">Neural Processing</div>
+                </div>
+
+                <div class="connector">→</div>
+
+                <!-- 5. Output -->
+                <div class="node" id="node-4">
+                    <div class="node-icon">💬</div>
+                    <div class="node-title">Output</div>
+                    <div class="node-desc">Generating Text</div>
+                </div>
+
             </div>
         </div>
 
-        <!-- Simplified Terminal Area -->
-        <div class="terminal-container">
-            <div class="terminal-header">
-                <span>AI PROCESS LOG</span>
-                <span id="statusIndicator" style="color: #64748b;">WAITING...</span>
+        <!-- Terminal -->
+        <div class="terminal-overlay">
+            <div class="term-bar">
+                <span>Process Log</span>
+                <span id="statusBadge" style="color: var(--accent);">IDLE</span>
             </div>
-            <div class="terminal-body" id="terminal">
+            <div class="term-content" id="terminal">
                 <div class="log-entry">
-                    <span class="log-bullet">></span>
-                    <span class="log-text">System ready. Waiting for user input...</span>
+                    <span class="log-time">00:00</span>
+                    <span class="log-txt">Waiting for input stream...</span>
                 </div>
             </div>
         </div>
@@ -340,165 +396,158 @@
     </div>
 
     <script>
-        const BLOCKS = ['blk-input', 'blk-token', 'blk-memory', 'blk-model', 'blk-output'];
-        let isRunning = false;
+        let isProcessing = false;
 
-        function log(message, highlight = false) {
+        function log(msg, isActive = false) {
             const term = document.getElementById('terminal');
-            const row = document.createElement('div');
-            row.className = 'log-entry';
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
             
-            const textClass = highlight ? 'log-text highlight' : 'log-text';
-
-            row.innerHTML = `
-                <span class="log-bullet">></span>
-                <span class="log-text ${textClass}">${message}</span>
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `
+                <span class="log-time">${timeStr}</span>
+                <span class="log-txt ${isActive ? 'active' : ''}">${msg}</span>
             `;
-            
-            term.appendChild(row);
-            term.scrollTop = term.scrollHeight; // Auto scroll
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
         }
 
-        async function startWorkflow() {
-            if (isRunning) return;
+        async function runSimulation() {
+            if (isProcessing) return;
             
-            const inputEl = document.getElementById('userInput');
-            const text = inputEl.value.trim();
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
             if (!text) return;
 
-            isRunning = true;
+            isProcessing = true;
             document.getElementById('sendBtn').disabled = true;
-            document.getElementById('statusIndicator').textContent = "RUNNING...";
-            document.getElementById('statusIndicator').style.color = "#00ff9d";
+            document.getElementById('statusBadge').innerText = "RUNNING";
 
-            // Chat UI update
-            const chatWin = document.getElementById('chatWindow');
-            chatWin.innerHTML += `<div class="msg user">${text}</div>`;
-            chatWin.scrollTop = chatWin.scrollHeight;
+            // Add Chat Msg
+            const chat = document.getElementById('chatLog');
+            chat.innerHTML += `<div class="message msg-user">${text}</div>`;
+            chat.scrollTop = chat.scrollHeight;
 
-            // Clear terminal for new run (optional, keeps it clean)
+            // Clear logs
             document.getElementById('terminal').innerHTML = '';
-            
+
             // --- STEP 1: INPUT ---
-            await moveToBlock(0);
-            log(`I am reading your message: "${text}"`, true);
+            await activateNode(0);
+            log(`Input received: "${text}"`, true);
+            await wait(1200);
+
+            // --- STEP 2: TOKENIZE ---
+            await activateNode(1);
+            log("Breaking text into tokens...");
             await wait(1500);
 
-            // --- STEP 2: TOKENIZER ---
-            await moveToBlock(1);
-            log("I am chopping your sentence into numbers so I can understand it.");
-            await wait(2000);
-
-            // --- STEP 3: MEMORY ---
-            await moveToBlock(2);
-            log("I am checking my memory to remember what we talked about before.");
-            await wait(2000);
+            // --- STEP 3: CONTEXT ---
+            await activateNode(2);
+            log("Loading conversation history...");
+            await wait(1500);
 
             // --- STEP 4: MODEL ---
-            await moveToBlock(3);
-            log("I am thinking very hard to find the best answer for you.");
-            
-            // Simulate "thinking" dots (visual wait only, no extra logs)
-            for(let i=0; i<4; i++) {
-                await wait(600);
+            await activateNode(3);
+            log("Processing neural layers...");
+            // Extra thinking time
+            for(let i=0; i<3; i++) {
+                await wait(500);
+                log("Calculating probability...");
             }
             await wait(500);
 
             // --- STEP 5: OUTPUT ---
-            await moveToBlock(4);
-            log("I am translating my thoughts back into English words for you.");
-            
-            // Generate response
-            const responseText = generateMockResponse(text);
+            await activateNode(4);
+            log("Decoding answer...");
             await wait(1000);
-            await endWorkflow(responseText);
-        }
 
-        function generateMockResponse(inputText) {
-            const lower = inputText.toLowerCase();
-            if (lower.includes('code') || lower.includes('python') || lower.includes('loop')) {
-                return "Here is a coding example: `print('Hello World')`. This tells the computer to say hello!";
-            } else if (lower.includes('hack') || lower.includes('security')) {
-                return "Cybersecurity is important! Always use strong passwords and keep your software updated.";
-            } else if (lower.includes('hello') || lower.includes('hi')) {
-                return "Hello there! I am ready to help you learn about AI.";
-            } else {
-                return "That's an interesting question! Based on my training, I think the answer involves analyzing the data patterns.";
-            }
-        }
-
-        async function endWorkflow(responseText) {
-            // Hide packet
-            const packet = document.getElementById('packet');
-            packet.style.opacity = '0';
-            setTimeout(() => packet.style.display = 'none', 500);
+            // Finish
+            const response = mockResponse(text);
+            chat.innerHTML += `<div class="message msg-ai">${response}</div>`;
+            chat.scrollTop = chat.scrollHeight;
             
-            // Remove active classes
-            BLOCKS.forEach(id => document.getElementById(id).classList.remove('active'));
+            finish();
+        }
 
-            // Update Chat
-            const chatWin = document.getElementById('chatWindow');
-            chatWin.innerHTML += `<div class="msg ai">${responseText}</div>`;
-            chatWin.scrollTop = chatWin.scrollHeight;
+        function mockResponse(text) {
+            const t = text.toLowerCase();
+            if (t.includes('hello')) return "Hello! Ready to analyze.";
+            if (t.includes('code')) return "Here is a Python snippet: print('Secure')";
+            return "Analysis complete. Logic path visualized.";
+        }
 
-            // Final log
-            log("Done! I have sent my answer to the chat window.", true);
+        async function finish() {
+            // Hide Orb
+            const orb = document.getElementById('orb');
+            orb.style.opacity = '0';
+            setTimeout(() => orb.style.display = 'none', 500);
 
-            // Reset UI State
+            // Reset Nodes
+            for(let i=0; i<5; i++) {
+                document.getElementById(`node-${i}`).classList.remove('active');
+            }
+
+            log("Process Complete.", true);
             document.getElementById('sendBtn').disabled = false;
             document.getElementById('userInput').value = '';
-            document.getElementById('statusIndicator').textContent = "DONE";
-            document.getElementById('statusIndicator').style.color = "#94a3b8";
-            
-            isRunning = false;
+            document.getElementById('statusBadge').innerText = "IDLE";
+            isProcessing = false;
         }
 
-        // Animation Logic
-        function moveToBlock(index) {
+        function activateNode(index) {
             return new Promise(resolve => {
-                const packet = document.getElementById('packet');
-                const targetBlock = document.getElementById(BLOCKS[index]);
+                const node = document.getElementById(`node-${index}`);
+                const container = document.getElementById('scrollContainer');
+                const orb = document.getElementById('orb');
+                const track = document.getElementById('track');
+
+                // 1. Deactivate previous
+                if (index > 0) document.getElementById(`node-${index-1}`).classList.remove('active');
+
+                // 2. Auto-Scroll Logic (Crucial for Mobile)
+                // Center the target node in the scroll view
+                const nodeLeft = node.offsetLeft;
+                const nodeWidth = node.offsetWidth;
+                const containerWidth = container.clientWidth;
                 
-                // Dim previous block
-                if (index > 0) {
-                    document.getElementById(BLOCKS[index-1]).classList.remove('active');
-                }
+                // Calculate scroll position to center element
+                const scrollPos = nodeLeft - (containerWidth / 2) + (nodeWidth / 2);
                 
-                // Get coordinates
-                const containerRect = document.getElementById('diagramArea').getBoundingClientRect();
-                const blockRect = targetBlock.getBoundingClientRect();
-                
-                // Calculate center position relative to container
-                const leftPos = (blockRect.left - containerRect.left) + (blockRect.width / 2);
-                const topPos = (blockRect.top - containerRect.top) + (blockRect.height / 2);
-                
-                // First show packet if hidden
-                if (packet.style.display === 'none' || packet.style.display === '') {
-                    packet.style.display = 'block';
-                    packet.style.opacity = '1';
-                    packet.style.left = leftPos + 'px';
-                    packet.style.top = topPos + 'px';
-                    
-                    targetBlock.classList.add('active');
+                container.scrollTo({
+                    left: scrollPos,
+                    behavior: 'smooth'
+                });
+
+                // 3. Move Orb (Must account for track position relative to scroll parent)
+                // Note: Orb is absolute inside 'track', which moves with scroll. 
+                // We just need its offset relative to the track start.
+                const targetLeft = node.offsetLeft + (node.offsetWidth / 2) - 10; // -10 is half orb size
+                const targetTop = node.offsetTop + (node.offsetHeight / 2) - 10;
+
+                if (orb.style.display === 'none' || orb.style.display === '') {
+                    // Initial Appear
+                    orb.style.display = 'block';
+                    orb.style.opacity = '1';
+                    orb.style.left = targetLeft + 'px';
+                    orb.style.top = targetTop + 'px';
+                    node.classList.add('active');
                     resolve();
                 } else {
-                    // Animate to new position
-                    packet.style.left = leftPos + 'px';
-                    packet.style.top = topPos + 'px';
+                    // Glide
+                    orb.style.left = targetLeft + 'px';
+                    orb.style.top = targetTop + 'px';
                     
-                    // Wait for transition to finish before activating block
+                    // Wait for glide
                     setTimeout(() => {
-                        targetBlock.classList.add('active');
+                        node.classList.add('active');
                         resolve();
-                    }, 800); // Matches CSS transition time
+                    }, 800);
                 }
             });
         }
 
-        function wait(ms) {
-            return new Promise(r => setTimeout(r, ms));
-        }
-
+        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
     </script>
 </body>
 </html>
